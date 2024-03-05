@@ -209,10 +209,7 @@ void setup() {
 }
 
 void loop() {
-  updateSensorCurrent();
-  Serial.print(Irms);
-  Serial.println("A");
-  
+
   unsigned long currentMillisCheckPump = millis();
   if (currentMillisCheckPump - previousMillisCheckPump >= 10) {
     previousMillisCheckPump = currentMillisCheckPump;
