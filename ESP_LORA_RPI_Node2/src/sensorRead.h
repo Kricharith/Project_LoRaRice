@@ -6,15 +6,19 @@
 #include <Adafruit_INA219.h>
 #include <Ultrasonic.h>
 // #define SEALEVELPRESSURE_HPA (1013.25)
+#include <HCSR04.h>
+
 
 #ifndef SENSOR_READ_H
 #define SENSOR_READ_H
 
 // SoftwareSerial mySerial(16, 17); // RX, TX เชื่อมต่อสายสีเหลืองกับ 17 และสายขาวกับ 16
-Ultrasonic ultrasonic(16, 17);
-extern float distance = 0;
-extern float zeroDistance = 0;  // ค่า zero ที่จะกำหนด
-extern float adjustedDistance = 0;// ระยะทางที่ปรับ zero แล้ว
+//Ultrasonic ultrasonic(16, 17);
+extern byte triggerPin = 17;
+extern byte echoPin = 16;
+extern double distance = 0;
+extern double zeroDistance = 0;  // ค่า zero ที่จะกำหนด
+extern double adjustedDistance = 0;// ระยะทางที่ปรับ zero แล้ว
 ////////////////////////////////////////////////
 extern float temp = 0;
 extern float hum = 0;
@@ -52,12 +56,14 @@ void updateSensorUltra(){
   unsigned long currentMillis2 = millis();
   if (currentMillis2 - previousMillis2 >= 1000) {
     previousMillis2 = currentMillis2;
-    distance = ultrasonic.read();
+    // distance = ultrasonic.read();
+    double* distances = HCSR04.measureDistanceCm();
+    distance = distances[0];
     adjustedDistance = distance - zeroDistance;   //คำนวณและแสดงผลระยะทางที่ปรับ zero แล้ว
+    adjustedDistance = -adjustedDistance;
     // Serial.print("zeroDistance: ");
     // Serial.print(zeroDistance);
     // Serial.print("adjustedDistance: ");
-    adjustedDistance = -adjustedDistance;
     // Serial.println(adjustedDistance);
   }
 }

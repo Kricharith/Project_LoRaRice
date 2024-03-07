@@ -16,8 +16,9 @@
 #define SEVEN          7 
 #define BUTTON_MODE    2
 #define BUTTON_SETZERO 4
-#define LED_SETZERO    32
-#define LED_STATUS     33
+#define LED_SETZERO    15
+#define LED_STATUS_R     33
+#define LED_STATUS_G     32
 //====================================EEPROM Address==============================
 #define addr_mode            0x10
 #define addr_timeNormalMode  0x20
@@ -25,7 +26,8 @@
 #define addr_zeroDistance    0x40
 #define addr_statusNode      0x50
 gpio_num_t wakeup_gpio = GPIO_NUM_2;
-gpio_num_t ledStatus_gpio = GPIO_NUM_33;
+gpio_num_t ledStatus_R_gpio = GPIO_NUM_33;
+gpio_num_t ledStatus_G_gpio = GPIO_NUM_32;
 // Adafruit_INA219 ina219;
 bool statusNode = false;
 bool stateSetZero = false;
@@ -112,7 +114,8 @@ void setup() {
   pinMode(BUTTON_MODE,INPUT_PULLUP);
   pinMode(BUTTON_SETZERO,INPUT_PULLUP);
   pinMode(LED_SETZERO,OUTPUT);
-  pinMode(LED_STATUS,OUTPUT);
+  pinMode(LED_STATUS_R,OUTPUT);
+  pinMode(LED_STATUS_G,OUTPUT);
   attachInterrupt(digitalPinToInterrupt(BUTTON_MODE), handleInterruptMode, RISING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_SETZERO), handleInterruptSetZeRo, RISING);
   check_wakeup_reason();
@@ -167,12 +170,12 @@ void setup() {
 }
 
 void loop() {
-  unsigned long currentMillisLed = millis();
-  if (currentMillisLed - previousMillisLed >= (timeNormalMode * 60 * 1000000)*2) {
-    if(state == FIVE){
+  // unsigned long currentMillisLed = millis();
+  // if (currentMillisLed - previousMillisLed >= (timeNormalMode * 60 * 1000000)*2) {
+  //   if(state == FIVE){
 
-    }
-  }
+  //   }
+  // }
   if(state == ONE){                   //อ่านค่าเซ็นเซอร์
     if(stateSetZero){
       setZero();
@@ -217,8 +220,10 @@ void loop() {
     }else if(sendSuccess == false && resendData == true){
       if(countSendData >= 5){
         statusNode = 0;
-        digitalWrite(LED_STATUS,statusNode);
-        gpio_hold_dis(ledStatus_gpio);
+        digitalWrite(LED_STATUS_R,!statusNode);
+        digitalWrite(LED_STATUS_G,statusNode);
+        gpio_hold_en(ledStatus_R_gpio);
+        gpio_hold_dis(ledStatus_G_gpio);
         Serial.print("OFF LED_STATUS");
         delay(10);
         state = SIX;
@@ -234,8 +239,10 @@ void loop() {
     // Serial.println(state);
     if(updateConfig(receiveData)){
       Serial.print("statusNode: ");  Serial.println(statusNode);
-      digitalWrite(LED_STATUS,statusNode);
-      gpio_hold_en(ledStatus_gpio);
+      digitalWrite(LED_STATUS_R,!statusNode);
+      digitalWrite(LED_STATUS_G,statusNode);
+      gpio_hold_dis(ledStatus_R_gpio);
+      gpio_hold_en(ledStatus_G_gpio);
       state = SIX;
     }else{
       state = THREE;

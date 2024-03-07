@@ -30,22 +30,53 @@ bool isAlphaNumericOrComma(char c);
 bool hasNonAlphaNumericChars(String str);
 
 void sendMessage(String outgoing) {//บางครั้งไม่ส่งมาแก้ด้วย เช็คtry cath
-  Serial.print(" Make  sendMessage :");
-  delay(500);
-  LoRa.beginPacket();                   // start packet
-  LoRa.write(destination);              // add destination address
-  LoRa.write(localAddress);             // add sender address
-  LoRa.write(outgoing.length());        // add payload length
-  LoRa.print(outgoing);                 // add payload
-  LoRa.endPacket();                     // finish packet and send it                          // increment message ID
-  Serial.print(" destination :");
-  Serial.println(destination);
-  Serial.print(" localAddress :");
-  Serial.println(localAddress);
-  Serial.print(" outgoing.length :");
-  Serial.println(outgoing.length());
-  Serial.print(" outgoing :");
-  Serial.println(outgoing);
+  // delay(10);
+  Serial.println("Make send LoRa");
+  if (LoRa.beginPacket() == 0) {
+    Serial.println("Error: Begin packet failed");
+    return;
+  }
+  if (LoRa.write(destination) != 1) {
+    Serial.println("Error: Write destination failed");
+    LoRa.endPacket(); // Make sure to end the packet before returning
+    return;
+  }
+  if (LoRa.write(localAddress) != 1) {
+    Serial.println("Error: Write local address failed");
+    LoRa.endPacket();
+    return;
+  }
+  if (LoRa.write(outgoing.length()) != 1) {
+    Serial.println("Error: Write payload length failed");
+    LoRa.endPacket();
+    return;
+  }
+  if (LoRa.print(outgoing) != outgoing.length()) {
+    Serial.println("Error: Write payload failed");
+    LoRa.endPacket();
+    return;
+  }
+  if (LoRa.endPacket() == false) {
+    Serial.println("Error: End packet failed");
+    return;
+  }
+  Serial.println("Message sent.");
+  // Serial.print(" Make  sendMessage :");
+  // delay(500);
+  // LoRa.beginPacket();                   // start packet
+  // LoRa.write(destination);              // add destination address
+  // LoRa.write(localAddress);             // add sender address
+  // LoRa.write(outgoing.length());        // add payload length
+  // LoRa.print(outgoing);                 // add payload
+  // LoRa.endPacket();                     // finish packet and send it                          // increment message ID
+  // Serial.print(" destination :");
+  // Serial.println(destination);
+  // Serial.print(" localAddress :");
+  // Serial.println(localAddress);
+  // Serial.print(" outgoing.length :");
+  // Serial.println(outgoing.length());
+  // Serial.print(" outgoing :");
+  // Serial.println(outgoing);
 }
 
 void onReceive() {

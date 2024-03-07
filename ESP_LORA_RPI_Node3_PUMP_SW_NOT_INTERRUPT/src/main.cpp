@@ -102,10 +102,10 @@ void check_wakeup_reason(){
   switch(wakeup_reason)
   {
     case ESP_SLEEP_WAKEUP_EXT0 :  Serial.println("Wakeup caused by external signal using RTC_IO GPIO -------> 4");
-                                  Serial.print("mode IN");Serial.println(mode); 
-                                  mode = !mode;
-                                  Serial.print("mode OUT");Serial.println(mode);
-                                  setMode(mode); 
+                                  //Serial.print("mode IN");Serial.println(mode); 
+                                  //mode = !mode;
+                                  //Serial.print("mode OUT");Serial.println(mode);
+                                  //setMode(mode); 
                                   break;
     case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
     case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
@@ -182,7 +182,7 @@ void setup() {
   SPI.begin(SCK, MISO, MOSI, SS);
   //setup LoRa transceiver module
   LoRa.setPins(SS, RST, DIO0);
-  LoRa.setTxPower(18);
+  LoRa.setTxPower(12);
   
   while (!LoRa.begin(BAND)) {
     Serial.println("Starting LoRa failed!");
@@ -209,167 +209,45 @@ void setup() {
 }
 
 void loop() {
-
-  unsigned long currentMillisCheckPump = millis();
-  if (currentMillisCheckPump - previousMillisCheckPump >= 10) {
-    previousMillisCheckPump = currentMillisCheckPump;
-    buttonMode.read();
-    buttonPump.read();
-    buttonModePump.read();
-    updatePump(pumpState);
-    updateModePump(pumpMode);
-    updateStatus(statusNode);
-    if(pumpState == 1){
-      //Serial.println(">>>>>>>>>>>>>>>>>>> pump onnnnnnnnnnnnnnnn <<<<<<<<<<<<<<<<<<<<<<");
-      pumpState = 1;
-    }else if(pumpState == 0){
-      //Serial.println(">>>>>>>>>>>>>>>>>>> pump offffffffffffffff <<<<<<<<<<<<<<<<<<<<<<");
-      pumpState = 0;
+  try {
+    unsigned long currentMillisCheckPump = millis();
+    if (currentMillisCheckPump - previousMillisCheckPump >= 50) {
+      previousMillisCheckPump = currentMillisCheckPump;
+      buttonMode.read();
+      buttonPump.read();
+      buttonModePump.read();
+      updatePump(pumpState);
+      updateModePump(pumpMode);
+      updateStatus(statusNode);
+      // if(pumpState == 1){
+      //   //Serial.println(">>>>>>>>>>>>>>>>>>> pump onnnnnnnnnnnnnnnn <<<<<<<<<<<<<<<<<<<<<<");
+      //   pumpState = 1;
+      // }else if(pumpState == 0){
+      //   //Serial.println(">>>>>>>>>>>>>>>>>>> pump offffffffffffffff <<<<<<<<<<<<<<<<<<<<<<");
+      //   pumpState = 0;
+      // }
+      // updatePump(pumpState);
+      // updateModePump(pumpMode);  
+      //Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     }
-    // updatePump(pumpState);
-    // updateModePump(pumpMode);  
-    //Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-  }
-  if(pumpState == 0){
-    Serial.println(">>>>>>>>>>>>>>>>>>> pumpState 0 <<<<<<<<<<<<<<<<<<<<<<");
-    
-    if(state == ONE){                   //อ่านค่าเซ็นเซอร์
-      Serial.println(state);
-      updateSensorTemp_Hum();
-      pumpStatus = 1;
-      state = TWO;
-    }else if(state == TWO){             //ส่งข้อมูลไปเกตเวย์พร้อมขอสถานะปั้มน้ำและค่าconfigต่างๆ
-      Serial.println(state);// pumpMode  mode pumpState timeNormalMode timeDebugMode
-      // temp hum pumpMode  mode  pumpState pumpStatus  statusNode  timeNormalMode  timeDebugMode
-      Mymessage = String(temp)+","+String(hum)+","+String(pumpMode)+","+String(mode)+","+String(pumpState)+","+String(pumpStatus)+","+String(statusNode)+","+String(timeNormalMode)+","+String(timeDebugMode);
-      Serial.print("Mymessage");
-      Serial.println(Mymessage);
-      sendMessage(Mymessage);
-      Serial.println("Mymessage sendddd");
-      state = THREE;
-    }else if(state == THREE){            //รอรับการยืนยันความถูกต้องของข้อมูลจากเกตเวย์
-      //Serial.println(state);
-      onReceive();
-      if(sendSuccess == true && resendData == false){
-        state = FOUR;
-      }else if(sendSuccess == false && resendData == true){
-        if(countSendData >= 5){
-          statusNode = 0;
-          //digitalWrite(LED_STATUS,statusNode);
-          //gpio_hold_dis(ledStatus_gpio);
-          Serial.print("OFF LED_STATUS");
-          delay(10);
-          pumpState = 0;
-          state = FIVE;
-        }else{
-          countSendData ++;
-          Serial.print("countSendData");
-          Serial.println(countSendData);
-          state = TWO;
-        }
-      }
-    }else if(state == FOUR){            //Updateข้อมูลconfigต่างๆจากเกตเวย์
-      if(updateConfig(receiveData)){
-        Serial.print("statusNode: ");  Serial.println(statusNode);
-        //digitalWrite(LED_STATUS,statusNode);
-        //gpio_hold_en(ledStatus_gpio);
-        if(pumpState == 1){//เช็คด้วยว่ามีการสั่งปั้มทำงานหรือไม่
-            pumpState = 1;
-            return;
-          }else{
-            state = FIVE;
-          }
-      }else{
-        state = TWO;
-      }
-      // checkStatePump();
-      //Serial.println(state);
+    if(pumpState == 0){
+      Serial.println(">>>>>>>>>>>>>>>>>>> pumpState 0 <<<<<<<<<<<<<<<<<<<<<<");
       
-      //state = FIVE;
-    }else if(state == FIVE){            //รอรับการยืนยันความถูกต้องของข้อมูลจากเกตเวย์
-      //Serial.println(state);
-      Serial.println(">>>>>>>>>>>>>>>>>>>Before<<<<<<<<<<<<<<<<<<<<<<");
-      Serial.print("pumpMode");
-      Serial.println(pumpMode);
-      Serial.print("mode");
-      Serial.println(mode);
-      Serial.print("pumpState");
-      Serial.println(pumpState);
-      Serial.print("statusNode");
-      Serial.println(statusNode);
-      Serial.print("timeNormalMode");
-      Serial.println(timeNormalMode);
-      Serial.print("timeDebugMode");
-      Serial.println(timeDebugMode);
-      Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-      updateEEPROM();
-      state = SIX;
-    }else if(state == SIX){             //บันทึกข้อมูลลงEEPROM
-      //Serial.println(state);
-      setMode(mode);
-      Serial.println(">>>>>>>>>>>>>>>>>>>Before Deep Sleep <<<<<<<<<<<<<<<<<<<<<<");
-      Serial.print("pumpMode");
-      Serial.println(pumpMode);
-      Serial.print("mode");
-      Serial.println(mode);
-      Serial.print("pumpState");
-      Serial.println(pumpState);
-      Serial.print("statusNode");
-      Serial.println(statusNode);
-      Serial.print("timeNormalMode");
-      Serial.println(timeNormalMode);
-      Serial.print("timeDebugMode");
-      Serial.println(timeDebugMode);
-      Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-      esp_deep_sleep_start(); // เข้าสู่โหมด Deep Sleep
-      state = SEVEN;
-    }
-  }else if(pumpState == 1){
-    // updatePump(pumpState);
-    // updateModePump(pumpMode);
-    // Serial.println(">>>>>>>>>>>>>>>>>>> pumpState 1 <<<<<<<<<<<<<<<<<<<<<<");
-    unsigned long currentMillisCount = millis();
-    if (currentMillisCount - previousMillisCount >= 1000) {
-      previousMillisCount = currentMillisCount;
-      countPumpMode ++;
-      if(countPumpMode == 10){
-        flag = 1;
-        state = ONE;
-        countSendData = 0;
-        delay(10);
-      }
-      Serial.print(">>>>>>>>>>>>>>>>>>> countPumpMode <<<<<<<<<<<<<<<<<<<<<<");
-      Serial.println(countPumpMode);
-    }
-    if(flag == 1){
       if(state == ONE){                   //อ่านค่าเซ็นเซอร์
-      Serial.println("------------------------------------------------"); 
-      Serial.println(state);    
-                                          //อ่านค่าเซ็นเซอร์วัดกระแสว่าปั้มทำงานจริงหรือไม่####################ยังไม่ได้ทำนะครับ
-      updateSensorCurrent();
-      if(Irms > 2){
+        Serial.println(state);
+        updateSensorTemp_Hum();
         pumpStatus = 1;
-        Serial.println("");
-      }else if(Irms <= 2 ){
-        pumpStatus = 0;
-      }
-      updateSensorTemp_Hum();
-      state = TWO;
+        state = TWO;
       }else if(state == TWO){             //ส่งข้อมูลไปเกตเวย์พร้อมขอสถานะปั้มน้ำและค่าconfigต่างๆ
-      Serial.println("------------------------------------------------"); 
-      Serial.println(state);
-        //Serial.println(state);
-        // pumpMode  mode  pumpState pumpStatus  statusNode  timeNormalMode  timeDebugMode
+        Serial.println(state);// pumpMode  mode pumpState timeNormalMode timeDebugMode
+        // temp hum pumpMode  mode  pumpState pumpStatus  statusNode  timeNormalMode  timeDebugMode
         Mymessage = String(temp)+","+String(hum)+","+String(pumpMode)+","+String(mode)+","+String(pumpState)+","+String(pumpStatus)+","+String(statusNode)+","+String(timeNormalMode)+","+String(timeDebugMode);
-        Serial.print("Mymessage :"); 
+        Serial.print("Mymessage");
         Serial.println(Mymessage);
-        delay(100);
         sendMessage(Mymessage);
-        Serial.println("Sent !!:");
+        Serial.println("Mymessage sendddd");
         state = THREE;
       }else if(state == THREE){            //รอรับการยืนยันความถูกต้องของข้อมูลจากเกตเวย์
-        Serial.println("------------------------------------------------"); 
-        Serial.println(state);
         //Serial.println(state);
         onReceive();
         if(sendSuccess == true && resendData == false){
@@ -380,7 +258,7 @@ void loop() {
             //digitalWrite(LED_STATUS,statusNode);
             //gpio_hold_dis(ledStatus_gpio);
             Serial.print("OFF LED_STATUS");
-            delay(10);
+            // delay(10);
             pumpState = 0;
             state = FIVE;
           }else{
@@ -391,27 +269,24 @@ void loop() {
           }
         }
       }else if(state == FOUR){            //Updateข้อมูลconfigต่างๆจากเกตเวย์
-        Serial.println("------------------------------------------------"); 
-        Serial.println(state);
         if(updateConfig(receiveData)){
           Serial.print("statusNode: ");  Serial.println(statusNode);
           //digitalWrite(LED_STATUS,statusNode);
           //gpio_hold_en(ledStatus_gpio);
-          if(pumpState == 0){//เช็คด้วยว่ามีการสั่งปั้มทำงานหรือไม่
-            // pumpState = 0;
-            // return;
-          }else{
-            state = FIVE;
-          }
+          if(pumpState == 1){//เช็คด้วยว่ามีการสั่งปั้มทำงานหรือไม่
+              pumpState = 1;
+              return;
+            }else{
+              state = FIVE;
+            }
         }else{
           state = TWO;
         }
         // checkStatePump();
         //Serial.println(state);
+        
         //state = FIVE;
       }else if(state == FIVE){            //รอรับการยืนยันความถูกต้องของข้อมูลจากเกตเวย์
-        Serial.println("------------------------------------------------"); 
-        Serial.println(state);
         //Serial.println(state);
         Serial.println(">>>>>>>>>>>>>>>>>>>Before<<<<<<<<<<<<<<<<<<<<<<");
         Serial.print("pumpMode");
@@ -430,8 +305,6 @@ void loop() {
         updateEEPROM();
         state = SIX;
       }else if(state == SIX){             //บันทึกข้อมูลลงEEPROM
-        Serial.println("------------------------------------------------"); 
-        Serial.println(state);
         //Serial.println(state);
         setMode(mode);
         Serial.println(">>>>>>>>>>>>>>>>>>>Before Deep Sleep <<<<<<<<<<<<<<<<<<<<<<");
@@ -447,16 +320,143 @@ void loop() {
         Serial.println(timeNormalMode);
         Serial.print("timeDebugMode");
         Serial.println(timeDebugMode);
-        Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-        countPumpMode = 0;
-        countSendData = 0;
-        flag = 0;
-        state = ONE;
-        // return;
+        Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>>esp_deep_sleep_start<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        esp_deep_sleep_start(); // เข้าสู่โหมด Deep Sleep
+        state = SEVEN;
+      }
+    }else if(pumpState == 1){
+      // Serial.println(">>>>>>>>>>>>>>>>>>> pumpState 1 <<<<<<<<<<<<<<<<<<<<<<");
+      unsigned long currentMillisCount = millis();
+      if (currentMillisCount - previousMillisCount >= 1000) {
+        previousMillisCount = currentMillisCount;
+        countPumpMode ++;
+        if(countPumpMode == 10){
+          flag = 1;
+        }
+        Serial.print(">>>>>>>>>>>>>>>>>>> countPumpMode <<<<<<<<<<<<<<<<<<<<<<");
+        Serial.println(countPumpMode);
+      }
+      if(flag == 1){
+        if(state == ONE){                   //อ่านค่าเซ็นเซอร์
+        Serial.println("------------------------------------------------"); 
+        Serial.println(state);    
+                                            //อ่านค่าเซ็นเซอร์วัดกระแสว่าปั้มทำงานจริงหรือไม่####################ยังไม่ได้ทำนะครับ
+        updateSensorCurrent();
+        if(Irms > 2){
+          pumpStatus = 1;
+          Serial.println("");
+        }else if(Irms <= 2 ){
+          pumpStatus = 1;
+        }
+        updateSensorTemp_Hum();
+        state = TWO;
+        }else if(state == TWO){             //ส่งข้อมูลไปเกตเวย์พร้อมขอสถานะปั้มน้ำและค่าconfigต่างๆ
+        Serial.println("------------------------------------------------"); 
+        Serial.println(state);
+          //Serial.println(state);
+          // pumpMode  mode  pumpState pumpStatus  statusNode  timeNormalMode  timeDebugMode
+          Mymessage = String(temp)+","+String(hum)+","+String(pumpMode)+","+String(mode)+","+String(pumpState)+","+String(pumpStatus)+","+String(statusNode)+","+String(timeNormalMode)+","+String(timeDebugMode);
+          Serial.print("Mymessage :"); 
+          Serial.println(Mymessage);
+          // delay(100);
+          sendMessage(Mymessage);
+          Serial.println("Sent !!:");
+          state = THREE;
+        }else if(state == THREE){            //รอรับการยืนยันความถูกต้องของข้อมูลจากเกตเวย์
+          Serial.println("------------------------------------------------"); 
+          Serial.println(state);
+          //Serial.println(state);
+          onReceive();
+          if(sendSuccess == true && resendData == false){
+            state = FOUR;
+          }else if(sendSuccess == false && resendData == true){
+            if(countSendData >= 5){
+              statusNode = 0;
+              //digitalWrite(LED_STATUS,statusNode);
+              //gpio_hold_dis(ledStatus_gpio);
+              Serial.print("OFF LED_STATUS");
+              // delay(10);
+              pumpState = 0;
+              state = FIVE;
+            }else{
+              countSendData ++;
+              Serial.print("countSendData");
+              Serial.println(countSendData);
+              state = TWO;
+            }
+          }
+        }else if(state == FOUR){            //Updateข้อมูลconfigต่างๆจากเกตเวย์
+          Serial.println("------------------------------------------------"); 
+          Serial.println(state);
+          if(updateConfig(receiveData)){
+            Serial.print("statusNode: ");  Serial.println(statusNode);
+            //digitalWrite(LED_STATUS,statusNode);
+            //gpio_hold_en(ledStatus_gpio);
+            if(pumpState == 0){//เช็คด้วยว่ามีการสั่งปั้มทำงานหรือไม่
+              // pumpState = 0;
+              // return;
+            }else{
+              state = FIVE;
+            }
+          }else{
+            state = TWO;
+          }
+          // checkStatePump();
+          //Serial.println(state);
+          //state = FIVE;
+        }else if(state == FIVE){            //รอรับการยืนยันความถูกต้องของข้อมูลจากเกตเวย์
+          Serial.println("------------------------------------------------"); 
+          Serial.println(state);
+          //Serial.println(state);
+          Serial.println(">>>>>>>>>>>>>>>>>>>Before<<<<<<<<<<<<<<<<<<<<<<");
+          Serial.print("pumpMode");
+          Serial.println(pumpMode);
+          Serial.print("mode");
+          Serial.println(mode);
+          Serial.print("pumpState");
+          Serial.println(pumpState);
+          Serial.print("statusNode");
+          Serial.println(statusNode);
+          Serial.print("timeNormalMode");
+          Serial.println(timeNormalMode);
+          Serial.print("timeDebugMode");
+          Serial.println(timeDebugMode);
+          Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+          updateEEPROM();
+          state = SIX;
+        }else if(state == SIX){             //บันทึกข้อมูลลงEEPROM
+          Serial.println("------------------------------------------------"); 
+          Serial.println(state);
+          //Serial.println(state);
+          setMode(mode);
+          Serial.println(">>>>>>>>>>>>>>>>>>>Before Deep Sleep <<<<<<<<<<<<<<<<<<<<<<");
+          Serial.print("pumpMode");
+          Serial.println(pumpMode);
+          Serial.print("mode");
+          Serial.println(mode);
+          Serial.print("pumpState");
+          Serial.println(pumpState);
+          Serial.print("statusNode");
+          Serial.println(statusNode);
+          Serial.print("timeNormalMode");
+          Serial.println(timeNormalMode);
+          Serial.print("timeDebugMode");
+          Serial.println(timeDebugMode);
+          Serial.println(">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+          countPumpMode = 0;
+          countSendData = 0;
+          Mymessage = "";
+          flag = 0;
+          state = ONE;
+          // return;
+        }
       }
     }
+  } catch (...) {
+    Serial.println("An error occurred while sending LoRa message.");
+    // กระทำตามสถานการณ์เหตุการณ์ผิดปกติตามที่คุณต้องการ
   }
-  delay(10);
+  // delay(0);
 
 }
 void updatePump(bool status){

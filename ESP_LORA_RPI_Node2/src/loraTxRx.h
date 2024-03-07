@@ -16,6 +16,7 @@ extern const int resetPin = 6;       // LoRa radio reset
 extern const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
 
 byte localAddress = 0xB1;     // address of this device
+String llll = "0xb1";
 byte destination = 0xBB;      // destination to send to
 extern bool sendSuccess = false;
 extern bool resendData = false;
