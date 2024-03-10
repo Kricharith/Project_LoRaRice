@@ -79,6 +79,7 @@ void updateModePump(bool status);
 void onModePressed(){
   Serial.println("onModePressed pressed");
   mode = !mode;
+  swPumpPressed = 1;
 }
 void onPumpPressed(){
   Serial.println("onPumpPressed pressed");
@@ -160,7 +161,7 @@ void setup() {
   pinMode(LED_STATUS,OUTPUT);
   pinMode(LED_PUMP,OUTPUT);
   pinMode(PUMP,OUTPUT);
-  digitalWrite(PUMP, HIGH);
+  digitalWrite(PUMP, LOW);
   digitalWrite(LED_PUMP, HIGH);
   digitalWrite(LED_STATUS, HIGH);
   digitalWrite(LED_MODE_PUMP, HIGH);
@@ -335,6 +336,7 @@ void loop() {
         }
         Serial.print(">>>>>>>>>>>>>>>>>>> countPumpMode <<<<<<<<<<<<<<<<<<<<<<");
         Serial.println(countPumpMode);
+        updateSensorCurrent();
       }
       if(flag == 1){
         if(state == ONE){                   //อ่านค่าเซ็นเซอร์
@@ -342,11 +344,11 @@ void loop() {
         Serial.println(state);    
                                             //อ่านค่าเซ็นเซอร์วัดกระแสว่าปั้มทำงานจริงหรือไม่####################ยังไม่ได้ทำนะครับ
         updateSensorCurrent();
-        if(Irms > 2){
+        if(Irms > 0.15){
           pumpStatus = 1;
           Serial.println("");
-        }else if(Irms <= 2 ){
-          pumpStatus = 1;
+        }else if(Irms <= 0.5){
+          pumpStatus = 0;
         }
         updateSensorTemp_Hum();
         state = TWO;
@@ -453,10 +455,10 @@ void loop() {
       }
     }
   } catch (...) {
-    Serial.println("An error occurred while sending LoRa message.");
-    // กระทำตามสถานการณ์เหตุการณ์ผิดปกติตามที่คุณต้องการ
+    Serial.println("An error ");
+    // กระทำตามสถานการณ์เหตุการณ์ผิดปกติ
   }
-  // delay(0);
+  delay(0);
 
 }
 void updatePump(bool status){

@@ -12,7 +12,7 @@ Adafruit_BME280 bme;
 unsigned long previousMillis1 = 0;
 unsigned long previousMillis2 = 0;
 
-extern double currCalibration = 0.52;  //0.52   111.1
+extern double currCalibration = 11;  //0.52   111.1
 extern float temp = 0;
 extern float hum = 0;
 extern double Irms = 0;
@@ -36,8 +36,8 @@ void updateSensorCurrent(){
     // Serial.print(Irms*230.0);	       // Apparent power
     // Serial.print("W");
     // Serial.print(" ");
-    // Serial.print(Irms);		       // Irms
-    // Serial.print(" ");
-    // Serial.println("A");
+    Serial.print(Irms);		       // Irms
+    Serial.print(" ");
+    Serial.println("A");
   }
 }

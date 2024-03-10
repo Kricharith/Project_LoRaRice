@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <LoRa.h>
+#include <EasyButton.h>
 #ifndef loratx_rx
 #define loratx_rx
 #define SCK 5
@@ -11,6 +12,9 @@
 #define BAND 923E6
 extern int swPumpPressed ;
 extern bool pumpState ;
+extern EasyButton buttonMode;
+extern EasyButton buttonPump;
+extern EasyButton buttonModePump;
 #endif
 
 extern const int csPin = 7;          // LoRa radio chip select
@@ -144,6 +148,9 @@ void onReceive() {
         //     // break;
         // }
         }
+      buttonMode.read();
+      buttonPump.read();
+      buttonModePump.read();
       if(swPumpPressed == 1){
         swPumpPressed = 0;
         sendSuccess = false;
