@@ -344,7 +344,7 @@ void loop() {
         Serial.println(state);    
                                             //อ่านค่าเซ็นเซอร์วัดกระแสว่าปั้มทำงานจริงหรือไม่####################ยังไม่ได้ทำนะครับ
         updateSensorCurrent();
-        if(Irms > 0.15){
+        if(Irms > 0.6){
           pumpStatus = 1;
           Serial.println("");
         }else if(Irms <= 0.5){

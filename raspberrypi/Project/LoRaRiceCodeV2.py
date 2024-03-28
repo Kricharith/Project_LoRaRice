@@ -280,6 +280,7 @@ class LoRaGateway(LoRa):
 		self.previousMillisNode2 = int(round(time.time() * 1000))  # ใช้ time.time() เพื่อดึงเวลาปัจจุบัน (ในวินาที) และคูณด้วย 1000 เพื่อแปลงเป็นมิลลิวินาที
 		self.previousMillisNode3 = int(round(time.time() * 1000))  # ใช้ time.time() เพื่อดึงเวลาปัจจุบัน (ในวินาที) และคูณด้วย 1000 เพื่อแปลงเป็นมิลลิวินาที
 		self.previousMillisLcd = int(round(time.time() * 1000))  # ใช้ time.time() เพื่อดึงเวลาปัจจุบัน (ในวินาที) และคูณด้วย 1000 เพื่อแปลงเป็นมิลลิวินาที
+		self.previousMillisNotify = int(round(time.time() * 1000))  # ใช้ time.time() เพื่อดึงเวลาปัจจุบัน (ในวินาที) และคูณด้วย 1000 เพื่อแปลงเป็นมิลลิวินาที
 		self.countLcd = 1
 		self.countSleep= 0
 		self.flag = 0
@@ -339,6 +340,7 @@ class LoRaGateway(LoRa):
 		self.blynkTimeNormalNode3 = 0
 		self.blynkTimeDebugNode3 = 0
 		
+		self.previousPumpState = 0
 		#////////////////////////Gateway/////////////////////////////
 		self.blynkTemp = 0
 		self.blynkHum = 0
@@ -696,7 +698,7 @@ class LoRaGateway(LoRa):
 			#	log_file.write(current_data + "\n")
 			sleep(0.1)
 			self.checkDataNode = 2
-		elif hex(self.localAddress_rx) == self.localAddress_Gateway and hex(self.destination_rx) == self.destination_Node3:
+		elif hex(self.localAddress_rx) == self.localAddress_Gateway and hex(self.destination_rx) == self.destination_Node3 and self.blynkUsageStateN3 == 1:#self.blynkUsageStateN3 == 1 !!!!!!
 			print("***********************************************************")
 			print("**************************Node 3***************************")
 			print("*** destination  :" ,hex(self.destination_rx))
@@ -870,7 +872,7 @@ class LoRaGateway(LoRa):
 		elif node == 3:
 			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Send Node 3 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 			sleep(2)
-			if self.pumpModeNode3 == 1:
+			if self.pumpModeNode3 == 1 :
 				if self.pumpStatusNode3 == 1:
 					print("########################################### Mode AuTo ###########################################")
 					if self.checkstatusNode1 == 1 and self.checkstatusNode2 == 1 and self.blynkUsageStateN1 == 1 and self.blynkUsageStateN2 == 1:#คอมเม้น self.checkstatusNode3 = 1 ต้องเช็คอันนี้ด้วนหรือเปล่า  
@@ -923,6 +925,9 @@ class LoRaGateway(LoRa):
 						#print("########################################### NOT ON button Usage Node1 or Node2 OR Node1 OFF OR Node2 OFF ###########################################")
 				else:
 					self.pumpStateNode3 = 0
+					blynk.log_event("pumpnotworknotification","เตือน!!! เครื่องสูบน้ำไม่ทำงาน กรุณาตรวจสอบเครื่องสูบน้ำ")
+					self.lineNotify('เตือน!!! เครื่องสูบน้ำไม่ทำงาน กรุณาตรวจสอบเครื่องสูบน้ำ')
+					############################DOOOOOOOOOOOOOOOOOOOOOOOOOO############################
 				#if self.pumpStateNode3 == 0:
 				#	self.pumpStatusNode3 = 0
 				self.checkstatusNode3 = 1
@@ -954,6 +959,8 @@ class LoRaGateway(LoRa):
 						self.pumpStatusNode3 = 1
 				else:
 					self.pumpStateNode3 = 0
+					blynk.log_event("pumpnotworknotification","เตือน!!! เครื่องสูบน้ำไม่ทำงาน กรุณาตรวจสอบเครื่องสูบน้ำ")
+					self.lineNotify('เตือน!!! เครื่องสูบน้ำไม่ทำงาน กรุณาตรวจสอบเครื่องสูบน้ำ')
 				#if self.pumpStateNode3 == 0:
 				#	self.pumpStatusNode3 = 0
 				self.checkstatusNode3 = 1
@@ -998,7 +1005,7 @@ class LoRaGateway(LoRa):
 					print(">>>>>>>>>>>>>>>>>>>>                  NO PASS                    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 					print(">>>>>>>>>>>>>>>>>>>>checkstatusNode1"+str(self.checkstatusNode1)+" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 				else:							#update ค่า ขึ้นblynk
-					#self.checkstatusNode1 = 0
+					self.checkstatusNode1 = 0
 					self.stateNode1 = self.checkstatusNode1
 					blynk.virtual_write(5,self.stateNode1)
 					print(">>>>>>>>>>>>>>>>>>>>              TimeNormalNode1                <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1017,7 +1024,7 @@ class LoRaGateway(LoRa):
 					print(">>>>>>>>>>>>>>>>>>>>                  NO PASS                    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 					print(">>>>>>>>>>>>>>>>>>>>checkstatusNode1"+str(self.checkstatusNode1)+" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 				else:							#update ค่า ขึ้นblynk
-					#self.checkstatusNode1 = 0
+					self.checkstatusNode1 = 0
 					self.stateNode1 = self.checkstatusNode1
 					blynk.virtual_write(5,self.stateNode1)
 					print(">>>>>>>>>>>>>>>>>>>>               TimeDebugNode1                <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1037,7 +1044,7 @@ class LoRaGateway(LoRa):
 					print(">>>>>>>>>>>>>>>>>>>>                  NO PASS                    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 					print(">>>>>>>>>>>>>>>>>>>>checkstatusNode2"+str(self.checkstatusNode2)+" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 				else:							#update ค่า ขึ้นblynk
-					#self.checkstatusNode2 = 0
+					self.checkstatusNode2 = 0
 					self.stateNode2 = self.checkstatusNode2
 					blynk.virtual_write(15,self.stateNode2)
 					print(">>>>>>>>>>>>>>>>>>>>              TimeNormalNode2                <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1056,7 +1063,7 @@ class LoRaGateway(LoRa):
 					print(">>>>>>>>>>>>>>>>>>>>                  NO PASS                    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 					print(">>>>>>>>>>>>>>>>>>>>checkstatusNode2"+str(self.checkstatusNode2)+" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 				else:							#update ค่า ขึ้นblynk
-					#self.checkstatusNode2 = 0
+					self.checkstatusNode2 = 0
 					self.stateNode2 = self.checkstatusNode2
 					blynk.virtual_write(15,self.stateNode2)
 					print(">>>>>>>>>>>>>>>>>>>>               TimeDebugNode2                <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1076,7 +1083,7 @@ class LoRaGateway(LoRa):
 					print(">>>>>>>>>>>>>>>>>>>>                  NO PASS                    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 					print(">>>>>>>>>>>>>>>>>>>>checkstatusNode3"+str(self.checkstatusNode3)+" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 				else:							#update ค่า ขึ้นblynk
-					#self.checkstatusNode3 = 0
+					self.checkstatusNode3 = 0
 					self.stateNode3 = self.checkstatusNode3
 					blynk.virtual_write(27,self.stateNode3)
 					print(">>>>>>>>>>>>>>>>>>>>              TimeNormalNode3                <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1095,7 +1102,7 @@ class LoRaGateway(LoRa):
 					print(">>>>>>>>>>>>>>>>>>>>                  NO PASS                    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 					print(">>>>>>>>>>>>>>>>>>>>checkstatusNode3"+str(self.checkstatusNode3)+" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 				else:							#update ค่า ขึ้นblynk
-					#self.checkstatusNode3 = 0
+					self.checkstatusNode3 = 0
 					self.stateNode3 = self.checkstatusNode3
 					blynk.virtual_write(27,self.stateNode3)
 					print(">>>>>>>>>>>>>>>>>>>>               TimeDebugNode3                <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -1107,72 +1114,92 @@ class LoRaGateway(LoRa):
 		time.sleep(0.01)
 	def notifications(self):
 		#blynk.sync_virtual(6,7,8,16,17,18,23,24,25,28,29,38,39,40,41,42)
-		if self.checkstatusNode1 == 1 and self.tempNode1 >= 80 and self.flag == 1:
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Temp Node 1 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			blynk.log_event("temperaturenotification","Temp Node 1 Over")
-			self.flag = 0
-		if self.checkstatusNode2 == 1 and self.tempNode2 >= 80 and self.flag == 1:
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Temp Node 2 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			blynk.log_event("temperaturenotification","Temp Node 2 Over")
-			self.flag = 0
-		if self.checkstatusNode3 == 1 and self.tempNode3 >= 80 and self.flag == 1:
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Temp Node 3 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			blynk.log_event("temperaturenotification","Temp Node 3 Over")
-			self.flag = 0
-		if self.checkstatusNode1 == 1 and self.humNode1 >= 90 and self.flag == 1:
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Hum Node 1 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			blynk.log_event("humiditynotification","Hum Node 1 Over")
-			self.flag = 0
-		if self.checkstatusNode2 == 1 and self.humNode2 >= 90 and self.flag == 1:
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Hum Node 2 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			blynk.log_event("humiditynotification","Hum Node 1 Over")
-			self.flag = 0
-		if self.checkstatusNode3 == 1 and self.humNode3 >= 90 and self.flag == 1:
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Hum Node 3 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-			blynk.log_event("humiditynotification","Hum Node 1 Over")
-			self.flag = 0
-		if self.checkstatusNode1 == 1 and self.checkstatusNode2 == 1 and self.blynkUsageStateN1 == 1 and self.blynkUsageStateN2 == 1 and self.flag == 1:
-			print("########################################### Use Node1 and Node2 ###########################################")
-			#AVERRAGE water Level
-			self.averageWaterLevel = (self.waterLevelNode1+self.waterLevelNode2)/2
-			if self.averageWaterLevel <= self.blynkWaterLevelStart:
-				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  LOW  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-				blynk.log_event("lowwaterlevelnotification","WaterLevel  LOW  Over !!!")
-			elif self.averageWaterLevel >= self.blynkWaterLevelStop:
-				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  HIGH  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-				blynk.log_event("highwaterlevelnotification","WaterLevel  HIGH  Over !!!")
-			self.flag = 0
-		elif self.checkstatusNode1 == 1 and self.blynkUsageStateN1 == 1 and self.flag == 1:
-			print("############################################### Use Node1 #################################################")
-			if self.waterLevelNode1 <= self.blynkWaterLevelStart:
-				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  LOW  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-				blynk.log_event("lowwaterlevelnotification","WaterLevel  LOW  Over !!!")
-			elif self.waterLevelNode1 >= self.blynkWaterLevelStop:
-				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  HIGH  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-				blynk.log_event("highwaterlevelnotification","WaterLevel  HIGH  Over !!!")
-			self.flag = 0
-		elif self.checkstatusNode2 == 1 and self.blynkUsageStateN2 == 1 and self.flag == 1:
-			print("############################################### Use Node2 #################################################")
-			if self.waterLevelNode2 <= self.blynkWaterLevelStart:
-				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  LOW  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-				blynk.log_event("lowwaterlevelnotification","WaterLevel  LOW  Over !!!")
-			elif self.waterLevelNode2 >= self.blynkWaterLevelStop:
-				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  HIGH  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-				blynk.log_event("highwaterlevelnotification","WaterLevel  HIGH  Over !!!")
-			self.flag = 0
-		#else:
-			#print("########################################### NOT ON button Usage Node1 or Node2 ###########################################")
-		if self.pumpStatusNode3 ==  0 and self.flag == 1:
-			print("########################################### PUMP NOT WORK ###########################################")
-			#blynk.log_event("pumpnotworknotification","PUMP NOT WORK!!!")
-			self.flag = 0
+		currentMillisNotify = int(round(time.time() * 1000))  # ดึงเวลาปัจจุบันในทุกครั้งในลูป
+		if currentMillisNotify - self.previousMillisNotify >= 1 * 60 * 1000 * 1.5:  # ตรงนี้คือ 10 นาที
+			# ทำสิ่งที่ต้องการเมื่อผ่านไปเวลาที่กำหนด
+			if self.usageNotify == 1 :
+				print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Check Notify  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+				if self.checkstatusNode1 == 1 and self.tempNode1 >= 80 and self.flag == 1:
+					print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Temp Node 1 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+					blynk.log_event("temperaturenotification","เตือน!!! อุณหภูมิภายในกล่องชุดวัดระดับน้ำในนาข้าว 1 สูงเกินกว่ากำหนด")
+					self.lineNotify('เตือน!!! อุณหภูมิภายในกล่องชุดวัดระดับน้ำในนาข้าว 1 สูงเกินกว่ากำหนด')
+					self.flag = 0
+				if self.checkstatusNode2 == 1 and self.tempNode2 >= 80 and self.flag == 1:
+					print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Temp Node 2 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+					blynk.log_event("temperaturenotification","เตือน!!! อุณหภูมิภายในกล่องชุดวัดระดับน้ำในนาข้าว 2 สูงเกินกว่ากำหนด")
+					self.lineNotify('เตือน!!! อุณหภูมิภายในกล่องชุดวัดระดับน้ำในนาข้าว 2 สูงเกินกว่ากำหนด')
+					self.flag = 0
+				if self.checkstatusNode3 == 1 and self.tempNode3 >= 80 and self.flag == 1:
+					print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Temp Node 3 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+					blynk.log_event("temperaturenotification","เตือน!!! อุณหภูมิภายในกล่องชุดควบคุมเครื่องสูบน้ำ สูงเกินกว่ากำหนด")
+					self.lineNotify('เตือน!!! อุณหภูมิภายในกล่องชุดควบคุมเครื่องสูบน้ำ สูงเกินกว่ากำหนด')
+					self.flag = 0
+				if self.checkstatusNode1 == 1 and self.humNode1 >= 90 and self.flag == 1:
+					print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Hum Node 1 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+					blynk.log_event("humiditynotification","เตือน!!! ความชื้นภายในกล่องชุดวัดระดับน้ำในนาข้าว 1 สูงเกินกว่ากำหนด")
+					self.lineNotify('เตือน!!! ความชื้นภายในกล่องชุดวัดระดับน้ำในนาข้าว 1 สูงเกินกว่ากำหนด')
+					self.flag = 0
+				if self.checkstatusNode2 == 1 and self.humNode2 >= 90 and self.flag == 1:
+					print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Hum Node 2 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+					blynk.log_event("humiditynotification","เตือน!!! ความชื้นภายในกล่องชุดวัดระดับน้ำในนาข้าว 2 สูงเกินกว่ากำหนด")
+					self.lineNotify('เตือน!!! ความชื้นภายในกล่องชุดวัดระดับน้ำในนาข้าว 2 สูงเกินกว่ากำหนด')
+					self.flag = 0
+				if self.checkstatusNode3 == 1 and self.humNode3 >= 90 and self.flag == 1:
+					print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Hum Node 3 Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+					blynk.log_event("humiditynotification","เตือน!!! ความชื้นภายในกล่องชุดควบคุมเครื่องสูบน้า สูงเกินกว่ากำหนด")
+					self.lineNotify('เตือน!!! ความชื้นภายในกล่องชุดควบคุมเครื่องสูบน้ สูงเกินกว่ากำหนด')
+					self.flag = 0
+				if self.checkstatusNode1 == 1 and self.checkstatusNode2 == 1 and self.blynkUsageStateN1 == 1 and self.blynkUsageStateN2 == 1 and self.flag == 1:
+					print("########################################### Use Node1 and Node2 ###########################################")
+					#AVERRAGE water Level
+					self.averageWaterLevel = (self.waterLevelNode1+self.waterLevelNode2)/2
+					if self.averageWaterLevel <= self.blynkWaterLevelStart:
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  LOW  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+						blynk.log_event("lowwaterlevelnotification","เตือน!!! ระดับน้ำในนาข้าว ต่ำเกินกว่ากำหนด")
+						self.lineNotify('เตือน!!! ระดับน้ำในนาข้าว ต่ำเกินกว่ากำหนด')
+					elif self.averageWaterLevel >= self.blynkWaterLevelStop:
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  HIGH  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+						blynk.log_event("highwaterlevelnotification","เตือน!!! ระดับน้ำในนาข้าว สูงเกินกว่ากำหนด")
+						self.lineNotify('เตือน!!! ระดับน้ำในนาข้าว สูงเกินกว่ากำหนด')
+					self.flag = 0
+				elif self.checkstatusNode1 == 1 and self.blynkUsageStateN1 == 1 and self.flag == 1:
+					print("############################################### Use Node1 #################################################")
+					if self.waterLevelNode1 <= self.blynkWaterLevelStart:
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  LOW  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+						blynk.log_event("lowwaterlevelnotification","เตือน!!! ระดับน้ำในนาข้าวชุดที่ 1 ต่ำเกินกว่ากำหนด")
+						self.lineNotify('เตือน!!! ระดับน้ำในนาข้าวชุดที่ 1 ต่ำเกินกว่ากำหนด')
+					elif self.waterLevelNode1 >= self.blynkWaterLevelStop:
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  HIGH  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+						blynk.log_event("highwaterlevelnotification","เตือน!!! ระดับน้ำในนาข้าวชุดที่ 1 สูงเกินกว่ากำหนด")
+						self.lineNotify('เตือน!!! ระดับน้ำในนาข้าวชุดที่ 1 สูงเกินกว่ากำหนด')
+					self.flag = 0
+				elif self.checkstatusNode2 == 1 and self.blynkUsageStateN2 == 1 and self.flag == 1:
+					print("############################################### Use Node2 #################################################")
+					if self.waterLevelNode2 <= self.blynkWaterLevelStart:
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  LOW  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+						blynk.log_event("lowwaterlevelnotification","เตือน!!! ระดับน้ำในนาข้าวชุดที่ 2 ต่ำเกินกว่ากำหนด")
+						self.lineNotify('เตือน!!! ระดับน้ำในนาข้าวชุดที่ 2 ต่ำเกินกว่ากำหนด') 
+					elif self.waterLevelNode2 >= self.blynkWaterLevelStop:
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WaterLevel  HIGH  Over !!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+						blynk.log_event("highwaterlevelnotification","เตือน!!! ระดับน้ำในนาข้าวชุดที่ 2 สูงเกินกว่ากำหนด")
+						self.lineNotify('เตือน!!! ระดับน้ำในนาข้าวชุดที่ 2 สูงเกินกว่ากำหนด')
+					self.flag = 0
+				#else:
+					#print("########################################### NOT ON button Usage Node1 or Node2 ###########################################")
+				if self.pumpStatusNode3 ==  0 and self.flag == 1:
+					print("########################################### PUMP NOT WORK ###########################################")
+					#blynk.log_event("pumpnotworknotification","PUMP NOT WORK!!!")
+					self.flag = 0
+			print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Check Notify  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+			self.previousMillisNotify = currentMillisNotify
 	def _lineNotify(self,payload,file=None):
-		url = 'https://notify-api.line.me/api/notify'
-		token = self.tokenLine
-		print('..........................................................................')
-		print(token)
-		headers = {'Authorization':'Bearer '+token}
-		return requests.post(url, headers=headers , data = payload, files=file)
+		if self.usageNotify == 1 :
+			url = 'https://notify-api.line.me/api/notify'
+			token = self.tokenLine
+			print('..........................................................................')
+			print(token)
+			headers = {'Authorization':'Bearer '+token}
+			return requests.post(url, headers=headers , data = payload, files=file)
 		#ข้อความ
 		#lineNotify('ข้อความ')
 		#notifySticker(11,1)
@@ -1192,18 +1219,19 @@ class LoRaGateway(LoRa):
 	#ส่งแจ้งเตือน
 	def start(self):
 		blynk.sync_virtual(6,7,8,16,17,18,23,24,25,28,29,38,39,40,41,42,43,44)
-		self.lineNotify('สวัสดี LoRa Rice ระบบเริ่มทำงาน')
 		self.reset_ptr_rx()
 		self.set_mode(MODE.RXCONT)
 		state = "ONE"  # กำหนด initial state เป็น "WAITING"
 		count_update_blynkGateway = 0
+		count_checkStatusPump = 0
 		blynk.virtual_write(31,1)
+		onLine = 1
 		while True:
 			try:
 				currentMillisLcd = int(round(time.time() * 1000))  # ดึงเวลาปัจจุบันในทุกครั้งในลูป
 				if currentMillisLcd - self.previousMillisLcd >= 1000: #self.TimeDebugNode3*60*
-					
 					count_update_blynkGateway = count_update_blynkGateway+1
+					count_checkStatusPump = count_checkStatusPump+1
 					if self.countLcd == 2 or self.countLcd == 3 or self.countLcd == 4:
 						self.countSleep = self.countSleep+1
 					if self.countSleep >=5:
@@ -1212,11 +1240,21 @@ class LoRaGateway(LoRa):
 						lcd.write_string('  >>> HOME <<<')
 						self.countSleep = 0
 					if count_update_blynkGateway >= 30:
-						print("sedddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+						print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> gateway update <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 						blynk.virtual_write(32,self.blynkTemp)
 						blynk.virtual_write(33,self.blynkHum)
 						blynk.virtual_write(31,1)
 						count_update_blynkGateway = 0
+					if count_checkStatusPump >= 2:
+						if self.pumpStateNode3 != self.previousPumpState :
+							if self.pumpStateNode3 == 1:
+								blynk.log_event("pumpnotworknotification","ปั้มเริ่มทำงาน")
+								self.lineNotify('ปั้มเริ่มทำงาน')
+							elif self.pumpStateNode3 == 0:
+								blynk.log_event("pumpnotworknotification","ปั้มหยุดทำงาน")
+								self.lineNotify('ปั้มหยุดทำงาน')
+							self.previousPumpState = self.pumpStateNode3
+						count_checkStatusPump = 0
 					self.previousMillisLcd = currentMillisLcd
 				self.setupMode()
 				self.checkStatusNode()
@@ -1251,6 +1289,9 @@ class LoRaGateway(LoRa):
 					self.setupMode()
 					print(state)
 					self.notifications()
+					if onLine == 1:
+						self.lineNotify('สวัสดี LoRa Rice ระบบเริ่มทำงาน')
+						onLine = 0
 					state = "ONE"
 			except Exception as e:
 				print("System Errer : ",e)
@@ -1272,6 +1313,11 @@ lora.set_freq(923.0)  # ต้องกำหนดค่าตามที่�
 try:
 	lora.start()
 except KeyboardInterrupt:
+	blynk.virtual_write(5,0)
+	blynk.virtual_write(15,0)
+	blynk.virtual_write(25,0)
+	blynk.virtual_write(26,0)
+	blynk.virtual_write(27,0)
 	blynk.virtual_write(31,0)
 	sys.stdout.flush()
 	print('')
